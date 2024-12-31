@@ -151,14 +151,7 @@ window.addEventListener('DOMContentLoaded', () => {
         chamfer: {
             radius: [15 * scale, 15 * scale, 15 * scale, 15 * scale]
         },
-        render: {
-            sprite: {
-                // texture: '/assets/head.png',  // Use the image as the texture
-                xScale: 0.3, // Scale the image
-                yScale: 0.3,   // Scale the image
-                yOffset: 0.12
-            }
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var chestOptions = Common.extend({
@@ -169,76 +162,54 @@ window.addEventListener('DOMContentLoaded', () => {
         chamfer: {
             radius: [20 * scale, 20 * scale, 26 * scale, 26 * scale]
         },
-        render: {
-            sprite: {
-                // texture: '/assets/body.png',  // Use the image as the texture
-                xScale: 0.35, // Scale the image
-                yScale: 0.35,   // Scale the image
-                yOffset: 0
-            }
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var leftArmOptions = Common.extend({
-        label: 'left-arm',
+        label: 'leftUpperArm',
         collisionFilter: {
             group: Body.nextGroup(true)
         },
         chamfer: {
             radius: 10 * scale
         },
-        render: {
-            sprite: {
-                texture: '/assets/body.png',  // Use the image as the texture
-                xScale: 0.35, // Scale the image
-                yScale: 0.35,   // Scale the image
-                yOffset: 0
-            }
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var leftLowerArmOptions = Common.extend({}, leftArmOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
+        label: 'leftLowerArm',
+        render: { fillStyle: "#00000000" }
     });
     
     var rightArmOptions = Common.extend({
-        label: 'right-arm',
+        label: 'rightUpperArm',
         collisionFilter: {
             group: Body.nextGroup(true)
         },
         chamfer: {
             radius: 10 * scale
         },
-        render: {
-            fillStyle: '#FFBC42'
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var rightLowerArmOptions = Common.extend({}, rightArmOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
+        label: 'rightLowerArm',
     });
     
     var leftLegOptions = Common.extend({
-        label: 'left-leg',
+        label: 'leftUpperLeg',
         collisionFilter: {
             group: Body.nextGroup(true)
         },
         chamfer: {
             radius: 10 * scale
         },
-        render: {
-            fillStyle: '#FFBC42'
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var leftLowerLegOptions = Common.extend({}, leftLegOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
+        label: 'leftLowerLeg',
+        render: { fillStyle: "#00000000" }
     });
     
     var rightLegOptions = Common.extend({
@@ -267,19 +238,19 @@ window.addEventListener('DOMContentLoaded', () => {
     var leftUpperArm = Bodies.rectangle(x - 39 * scale, y - 15 * scale, 20 * scale, 40 * scale, leftArmOptions);
     var leftLowerArm = Bodies.rectangle(x - 39 * scale, y + 25 * scale, 20 * scale, 60 * scale, leftLowerArmOptions);
     var leftUpperLeg = Bodies.rectangle(x - 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, leftLegOptions);
-    var leftLowerLeg = Bodies.rectangle(x - 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, leftLowerLegOptions);
+    var leftLowerLeg = Bodies.rectangle(x - 10 * scale, y + 97 * scale, 20 * scale, 60 * scale, leftLowerLegOptions);
     var rightUpperLeg = Bodies.rectangle(x + 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, rightLegOptions);
     var rightLowerLeg = Bodies.rectangle(x + 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, rightLowerLegOptions);
     
     // Create image elements for each body part (use your own image paths)
     const headImg = createImageElement('/assets/head.png', 'head',10);
     const chestImg = createImageElement('/assets/body.png', 'chest',9);
-    const rightUpperArmImg = createImageElement('/assets/head.png', 'rightUpperArm',8);
-    const rightLowerArmImg = createImageElement('/assets/head.png', 'rightLowerArm',8);
-    const leftUpperArmImg = createImageElement('/assets/head.png', 'leftUpperArm',8);
-    const leftLowerArmImg = createImageElement('/assets/head.png', 'leftLowerArm',8);
-    const leftUpperLegImg = createImageElement('/assets/head.png', 'leftUpperLeg',8);
-    const leftLowerLegImg = createImageElement('/assets/head.png', 'leftLowerLeg',8);
+    const rightUpperArmImg = createImageElement('/assets/rightUpperArm.png', 'rightUpperArm',8);
+    const rightLowerArmImg = createImageElement('/assets/rightLowerArm.png', 'rightLowerArm',8);
+    const leftUpperArmImg = createImageElement('/assets/leftUpperArm.png', 'leftUpperArm',8);
+    const leftLowerArmImg = createImageElement('/assets/leftLowerArm.png', 'leftLowerArm',8);
+    const leftUpperLegImg = createImageElement('/assets/leftUpperLeg.png', 'leftUpperLeg',8);
+    const leftLowerLegImg = createImageElement('/assets/leftLowerLeg.png', 'leftLowerLeg',8);
     const rightUpperLegImg = createImageElement('/assets/head.png', 'rightUpperLeg',8);
     const rightLowerLegImg = createImageElement('/assets/head.png', 'rightLowerLeg',8);
 
