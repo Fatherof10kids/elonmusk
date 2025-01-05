@@ -5,6 +5,8 @@ let canvasHeight = innerHeight
 const stdDeviation = [8, 10]
 const colorMatrix = ['15 -3', '30 -5']
 
+const MAX_CIRCLES = 200;  // 1 litre = 6.5 circles
+
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.querySelector('#matter-canvas')
   console.log(canvas)
@@ -13,7 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
   let engine, render, runner, mouse, mouseConstraint
 
   let circles = []
-  let glass
+//   let glass
 
   function init() {
     engine = Engine.create({
@@ -56,24 +58,78 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function createLiquid() {
-    const x = 105
-    const y = 105
-    const radius = randomNumBetween(6, 7)
-    const body = Bodies.circle(x, y, radius, {
-      friction: 0,
-      density: 1,
-      frictionAir: 0,
-      restitution: 0.7,
-      render: { fillStyle: '#fff',
-            sprite: {
-                filter: 'url(#gooey)' // Apply the SVG filter to the circle
+    if (circles.length < MAX_CIRCLES) {
+        const x = 600;
+        const y = 105;
+        const radius = randomNumBetween(6, 7);
+        const body = Bodies.circle(x, y, radius, {
+            friction: 0,
+            density: 1,
+            frictionAir: 0,
+            restitution: 0.7,
+            render: {
+                fillStyle: '#34d2eb',
+                sprite: {
+                    filter: 'url(#gooey)' // Apply the SVG filter to the circle
+                }
             }
-        }
-    })
-    Body.applyForce(body, body.position, { x: 1, y: 0 })
-    Composite.add(engine.world, body)
-    circles.push(body)
+        });
+        
+        Body.applyForce(body, body.position, { x: 1, y: 0 });
+        Composite.add(engine.world, body);
+        circles.push(body);
+    } else {
+        console.log("Maximum liquid circles reached!");
+    }
+  }
 
+  function createWalls()
+  {
+        const wallColor = '#34d2eb'
+            // Create ground composite that surrounds the canvas
+        const ground = Composite.create();
+
+        // Create the four walls (edges) of the canvas
+        const wallThickness = 10; // Thickness of walls
+
+        // Left wall
+        const leftWall = Bodies.rectangle(0 + 300, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
+        // Right wall
+        const rightWall = Bodies.rectangle(canvasWidth - 600, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
+        // Top wall
+        const topWall = Bodies.rectangle(canvasWidth / 2, 0 - wallThickness, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+        // Bottom wall
+        const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight + wallThickness, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+
+        // Add the walls to the ground composite
+        Composite.add(ground, [leftWall, rightWall, topWall, bottomWall]);
+
+        Composite.add(engine.world, ground);
+  }
+
+  function createCyberTruck(){
+    // Set up the desired weight and dimensions for the rectangle
+    const weight = 10000; // in kilograms
+    const width = 200; // in pixels (width of the rectangle)
+    const height = 100; // in pixels (height of the rectangle)
+
+    // Assuming 1 pixel = 1 cm, so the volume is in cubic centimeters
+    const area = width * height; // area in square centimeters
+
+    // Set the density to ensure the mass is 10 kg
+    // Mass = Density * Area, so Density = Mass / Area
+    const density = weight / area; // density in kg/cm²
+
+    // Create the rectangle with the calculated density
+    const cyberTruck = Bodies.rectangle(700, 850, width, height, {
+    density: density, // Apply calculated density to get 10 kg mass
+    render: { fillStyle: '#00000000' }
+    });
+    
+    const headImg = createImageElement('/assets/CyberTruck.png', 'cyberTruck',10);
+
+    Composite.add(engine.world, cyberTruck);
+    return cyberTruck;
   }
 
 
@@ -133,6 +189,34 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   }
+
+  function updateImageCar(car) {
+
+    // Body parts and images should already be mapped
+    const img = document.getElementById('cyberTruck');
+ 
+    // Scale factor (0.3)
+    const scale = 0.35;
+ 
+    if (img) {
+    const position = car.position;
+    const angle = car.angle;
+
+    // Set the width and height to 0.3 of the original size (scaled)
+    img.style.width = `${img.naturalWidth * scale}px`;
+    img.style.height = `${img.naturalHeight * scale}px`;
+
+
+    // Update position
+    img.style.left = `${position.x - img.width / 2}px`;
+    img.style.top = `${position.y - img.height / 2}px`;
+
+    // Update rotation (convert radians to degrees)
+    const rotationInDegrees = angle * (180 / Math.PI);
+    img.style.transform = `rotate(${rotationInDegrees}deg)`;
+    }
+ 
+   }
 
   function ragdoll(x, y, scale, options) {
     scale = typeof scale === 'undefined' ? 1 : scale;
@@ -213,22 +297,19 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     
     var rightLegOptions = Common.extend({
-        label: 'right-leg',
+        label: 'rightUpperLeg',
         collisionFilter: {
             group: Body.nextGroup(true)
         },
         chamfer: {
             radius: 10 * scale
         },
-        render: {
-            fillStyle: '#FFBC42'
-        }
+        render: { fillStyle: "#00000000" }
     }, options);
     
     var rightLowerLegOptions = Common.extend({}, rightLegOptions, {
-        render: {
-            fillStyle: '#E59B12'
-        }
+        label: 'rightLowerLeg',
+        render: { fillStyle: "#00000000" }
     });
     
     var head = Bodies.rectangle(x, y - 60 * scale, 34 * scale, 40 * scale, headOptions);
@@ -251,8 +332,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const leftLowerArmImg = createImageElement('/assets/leftLowerArm.png', 'leftLowerArm',8);
     const leftUpperLegImg = createImageElement('/assets/leftUpperLeg.png', 'leftUpperLeg',8);
     const leftLowerLegImg = createImageElement('/assets/leftLowerLeg.png', 'leftLowerLeg',8);
-    const rightUpperLegImg = createImageElement('/assets/head.png', 'rightUpperLeg',8);
-    const rightLowerLegImg = createImageElement('/assets/head.png', 'rightLowerLeg',8);
+    const rightUpperLegImg = createImageElement('/assets/rightUpperLeg.png', 'rightUpperLeg',8);
+    const rightLowerLegImg = createImageElement('/assets/rightLowerLeg.png', 'rightLowerLeg',8);
 
     var chestToRightUpperArm = Constraint.create({
         bodyA: chest,
@@ -435,62 +516,64 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function createRagdoll() {
     const x = 200
-    const y = -1000
+    const y = 500
     const opt = 1.3
     var rag = ragdoll(x,y,opt)
     Composite.add(engine.world, rag)
     return rag
   }
 
-  function Glass() {
-    const glassImg = document.querySelector('#glass')
-    this.cx = canvasWidth * 0.5
-    this.cy = canvasHeight * 0.8
-    const thickness = 25
-    const wallColor = '#00000000'
+//   function Glass() {
+//     const glassImg = document.querySelector('#glass')
+//     this.cx = canvasWidth * 0.5
+//     this.cy = canvasHeight * 0.8
+//     const thickness = 25
+//     const wallColor = '#00000000'
 
-    const left = Bodies.rectangle(this.cx - 60, this.cy, thickness, 150, {
-      chamfer: { radius: 10 },
-      isStatic: true,
-      angle: Math.PI / 180 * -15,
-      render: { fillStyle: wallColor }
-    })
-    const right = Bodies.rectangle(this.cx + 37, this.cy, thickness, 150, {
-      chamfer: { radius: 10 },
-      isStatic: true,
-      angle: Math.PI / 180 * 15,
-      render: { fillStyle: wallColor }
-    })
-    const bottom = Bodies.rectangle(this.cx - 10, this.cy + 72, 85, thickness * 2, {
-      chamfer: { radius: 20 },
-      isStatic: true,
-      render: { fillStyle: wallColor }
-    })
-    glassImg.style.transform = `translate(${this.cx - canvasWidth / 2}px, ${this.cy - canvasHeight / 2}px)`
+//     const left = Bodies.rectangle(this.cx - 60, this.cy, thickness, 150, {
+//       chamfer: { radius: 10 },
+//       isStatic: true,
+//       angle: Math.PI / 180 * -15,
+//       render: { fillStyle: wallColor }
+//     })
+//     const right = Bodies.rectangle(this.cx + 37, this.cy, thickness, 150, {
+//       chamfer: { radius: 10 },
+//       isStatic: true,
+//       angle: Math.PI / 180 * 15,
+//       render: { fillStyle: wallColor }
+//     })
+//     const bottom = Bodies.rectangle(this.cx - 10, this.cy + 72, 85, thickness * 2, {
+//       chamfer: { radius: 20 },
+//       isStatic: true,
+//       render: { fillStyle: wallColor }
+//     })
+//     glassImg.style.transform = `translate(${this.cx - canvasWidth / 2}px, ${this.cy - canvasHeight / 2}px)`
 
-    Composite.add(engine.world, [left, right, bottom])
+//     Composite.add(engine.world, [left, right, bottom])
 
-    this.setPosition = pos => {
-      this.cx = pos.x
-      this.cy = pos.y
-      Body.setPosition(left, { x: this.cx - 60, y: this.cy })
-      Body.setPosition(right, { x: this.cx + 37, y: this.cy })
-      Body.setPosition(bottom, { x: this.cx - 10, y: this.cy + 72 })
-      glassImg.style.transform = `translate(${this.cx - canvasWidth / 2}px, ${this.cy - canvasHeight / 2}px)`
-    }
-  }
+//     this.setPosition = pos => {
+//       this.cx = pos.x
+//       this.cy = pos.y
+//       Body.setPosition(left, { x: this.cx - 60, y: this.cy })
+//       Body.setPosition(right, { x: this.cx + 37, y: this.cy })
+//       Body.setPosition(bottom, { x: this.cx - 10, y: this.cy + 72 })
+//       glassImg.style.transform = `translate(${this.cx - canvasWidth / 2}px, ${this.cy - canvasHeight / 2}px)`
+//     }
+//   }
 
   init()
   var person = createRagdoll()
+  createWalls()
+  var car = createCyberTruck()
   resizeFilter()
-  glass = new Glass()
+//   glass = new Glass()
 
-  Events.on(mouseConstraint, "mousemove", e => {
-    glass.setPosition({
-      x: e.mouse.position.x - 70,
-      y: e.mouse.position.y
-    })
-  })
+//   Events.on(mouseConstraint, "mousemove", e => {
+//     glass.setPosition({
+//       x: e.mouse.position.x - 70,
+//       y: e.mouse.position.y
+//     })
+//   })
 
   Events.on(runner, 'tick', e => {
     createLiquid()
@@ -504,6 +587,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   Events.on(engine, 'afterUpdate', () => {
     updateImagePositionAndRotation(person);
+    updateImageCar(car);
   });
 
   function resizeFilter() {
@@ -523,7 +607,7 @@ window.addEventListener('DOMContentLoaded', () => {
     render.canvas.height = canvasHeight
     resizeFilter()
 
-    glass.setPosition({ x: canvasWidth * 0.5, y: canvasHeight * 0.8 })
+    // glass.setPosition({ x: canvasWidth * 0.5, y: canvasHeight * 0.8 })
   })
 
 })
