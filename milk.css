@@ -4,7 +4,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  /* width: 100%; */
   height: 100%;
   overflow: hidden;
   background-color: #feffff;
@@ -21,6 +21,17 @@ header {
   text-orientation:sideways;
   font-size: 20vh;
   color: #ffffff80;
+}
+
+.screen {
+  width: 720px;
+  height: 1280px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 #matter-canvas {

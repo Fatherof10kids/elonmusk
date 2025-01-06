@@ -1,6 +1,6 @@
 
-let canvasWidth = innerWidth
-let canvasHeight = innerHeight
+let canvasWidth = 720
+let canvasHeight = 1280
 
 const stdDeviation = [8, 10]
 const colorMatrix = ['15 -3', '30 -5']
@@ -9,7 +9,6 @@ const MAX_CIRCLES = 200;  // 1 litre = 6.5 circles
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.querySelector('#matter-canvas')
-  console.log(canvas)
   const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint, Events, Body } = Matter
 
   let engine, render, runner, mouse, mouseConstraint
@@ -41,7 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
       mouse: mouse,
       constraint: {
         stiffness: 0.1,
-        render: { visible: false }
+        render: { visible: true }
       }
     })
 
@@ -59,8 +58,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function createLiquid() {
     if (circles.length < MAX_CIRCLES) {
-        const x = 600;
-        const y = 105;
+        const x = 200;
+        const y = 450;
         const radius = randomNumBetween(6, 7);
         const body = Bodies.circle(x, y, radius, {
             friction: 0,
@@ -93,13 +92,13 @@ window.addEventListener('DOMContentLoaded', () => {
         const wallThickness = 10; // Thickness of walls
 
         // Left wall
-        const leftWall = Bodies.rectangle(0 + 300, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
+        const leftWall = Bodies.rectangle(0, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
         // Right wall
-        const rightWall = Bodies.rectangle(canvasWidth - 600, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
+        const rightWall = Bodies.rectangle(canvasWidth, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
         // Top wall
-        const topWall = Bodies.rectangle(canvasWidth / 2, 0 - wallThickness, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+        const topWall = Bodies.rectangle(canvasWidth / 2, 0, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
         // Bottom wall
-        const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight + wallThickness, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+        const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
 
         // Add the walls to the ground composite
         Composite.add(ground, [leftWall, rightWall, topWall, bottomWall]);
@@ -121,7 +120,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const density = weight / area; // density in kg/cm²
 
     // Create the rectangle with the calculated density
-    const cyberTruck = Bodies.rectangle(700, 850, width, height, {
+    const cyberTruck = Bodies.rectangle(300, 850, width, height, {
     density: density, // Apply calculated density to get 10 kg mass
     render: { fillStyle: '#00000000' }
     });
