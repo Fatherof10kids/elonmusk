@@ -1,7 +1,4 @@
 
-let canvasWidth = 720
-let canvasHeight = 1280
-
 const stdDeviation = [8, 10]
 const colorMatrix = ['15 -3', '30 -5']
 
@@ -9,6 +6,10 @@ const MAX_CIRCLES = 200;  // 1 litre = 6.5 circles
 
 window.addEventListener('DOMContentLoaded', () => {
   const canvas = document.querySelector('#matter-canvas')
+
+  let canvasWidth = canvas.offsetWidth
+  let canvasHeight = canvas.offsetHeight
+
   const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint, Events, Body } = Matter
 
   let engine, render, runner, mouse, mouseConstraint
@@ -26,8 +27,8 @@ window.addEventListener('DOMContentLoaded', () => {
       canvas: canvas,
       engine: engine,
       options: {
-        width: canvasWidth,
-        height: canvasHeight,
+        width: canvas.offsetWidth,
+        height: canvas.offsetHeight,
         wireframes: false,
         background: 'transparent',
         pixelRatio: 1
@@ -40,7 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
       mouse: mouse,
       constraint: {
         stiffness: 0.1,
-        render: { visible: true }
+        render: { visible: false }
       }
     })
 
@@ -59,7 +60,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function createLiquid() {
     if (circles.length < MAX_CIRCLES) {
         const x = 200;
-        const y = 450;
+        const y = 200;
         const radius = randomNumBetween(6, 7);
         const body = Bodies.circle(x, y, radius, {
             friction: 0,
@@ -92,13 +93,13 @@ window.addEventListener('DOMContentLoaded', () => {
         const wallThickness = 10; // Thickness of walls
 
         // Left wall
-        const leftWall = Bodies.rectangle(0, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
+        const leftWall = Bodies.rectangle(0, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
         // Right wall
-        const rightWall = Bodies.rectangle(canvasWidth, canvasHeight / 2, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
+        const rightWall = Bodies.rectangle(canvasWidth, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
         // Top wall
         const topWall = Bodies.rectangle(canvasWidth / 2, 0, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
         // Bottom wall
-        const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+        const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight - 200, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
 
         // Add the walls to the ground composite
         Composite.add(ground, [leftWall, rightWall, topWall, bottomWall]);
@@ -110,7 +111,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Set up the desired weight and dimensions for the rectangle
     const weight = 10000; // in kilograms
     const width = 200; // in pixels (width of the rectangle)
-    const height = 100; // in pixels (height of the rectangle)
+    const height = 50; // in pixels (height of the rectangle)
 
     // Assuming 1 pixel = 1 cm, so the volume is in cubic centimeters
     const area = width * height; // area in square centimeters
@@ -204,7 +205,6 @@ window.addEventListener('DOMContentLoaded', () => {
     // Set the width and height to 0.3 of the original size (scaled)
     img.style.width = `${img.naturalWidth * scale}px`;
     img.style.height = `${img.naturalHeight * scale}px`;
-
 
     // Update position
     img.style.left = `${position.x - img.width / 2}px`;
@@ -600,10 +600,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('resize', () => {
-    canvasWidth = innerWidth
-    canvasHeight = innerHeight
-    render.canvas.width = canvasWidth
-    render.canvas.height = canvasHeight
+    // canvasWidth = innerWidth
+    // canvasHeight = innerHeight
+    // render.canvas.width = canvasWidth
+    // render.canvas.height = canvasHeight
     resizeFilter()
 
     // glass.setPosition({ x: canvasWidth * 0.5, y: canvasHeight * 0.8 })
