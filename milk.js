@@ -156,7 +156,13 @@ window.addEventListener('DOMContentLoaded', () => {
    }
 
    function createWreckingBall(){
-    var ball = Bodies.circle(100, 400, 50, { density: 2000, frictionAir: 0.005});
+    var ball = Bodies.circle(100, 400, 50, { density: 2000, frictionAir: 0.005, render: {
+        sprite: {
+          texture: '/assets/wrecking_ball.png', // Path to the image
+          xScale: 0.6,  // Scale the image based on the width of the rectangle
+          yScale: 0.6   // Scale the image based on the height of the rectangle
+        }
+    }});
     
     Composite.add(engine.world, ball);
     Composite.add(engine.world, Constraint.create({
