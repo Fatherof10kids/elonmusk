@@ -77,12 +77,11 @@ window.addEventListener('DOMContentLoaded', () => {
     function createSeesaw(){
       var group = Body.nextGroup(true);
   
-      var catapult = Bodies.rectangle(350, 900, 500, 20, { collisionFilter: { group: group } });
+      var catapult = Bodies.rectangle(270, 700, 450, 20, { collisionFilter: { group: group }, render: { fillStyle: '#7e716d' } });
   
       Composite.add(engine.world, [
           catapult,
-          Bodies.rectangle(350, 900, 30, 100, { isStatic: true, collisionFilter: { group: group }, render: { fillStyle: '#060a19' } }),
-          Bodies.circle(550, 100, 50, { density: 0.005 }),
+          Bodies.rectangle(270, 700, 30, 100, { isStatic: true, collisionFilter: { group: group }, render: { fillStyle: '#000000' } }),
           Constraint.create({ 
               bodyA: catapult, 
               pointB: { x: catapult.position.x, y: catapult.position.y - 30 },
@@ -93,6 +92,36 @@ window.addEventListener('DOMContentLoaded', () => {
   
     }
   
+    function createGoldBar(){
+       // Create a stack of gold bars
+       const goldBarWidth = 80;
+       const goldBarHeight = 30;
+       const stackHeight = 30;
+       const goldBarOptions = {
+          render: {
+            sprite: {
+              texture: '/assets/gold_bar.png', // Path to the image
+              xScale: 0.25,  // Scale the image based on the width of the rectangle
+              yScale: 0.4   // Scale the image based on the height of the rectangle
+            }
+          },
+           friction: 0.7,
+           restitution: 0.3,
+           mass : 10
+       };
+
+       // Stack of bars
+       for (let i = 0; i < stackHeight; i++) {
+           const bar = Bodies.rectangle(
+               450, // X position
+               700 - (i * (goldBarHeight + 2)), // Y position, stacked on top of the previous bar
+               goldBarWidth,
+               goldBarHeight,
+               goldBarOptions
+           );
+           Composite.add(engine.world, bar);
+       }
+    }
   
     function createImageElement(src, id, zIndex = 1) {
       const img = document.createElement('img');
@@ -475,8 +504,8 @@ window.addEventListener('DOMContentLoaded', () => {
       }
   
     function createRagdoll() {
-      const x = 200
-      const y = 500
+      const x = 100
+      const y = 100
       const opt = 1.3
       var rag = ragdoll(x,y,opt)
       Composite.add(engine.world, rag)
@@ -485,6 +514,7 @@ window.addEventListener('DOMContentLoaded', () => {
   
     init()
     var person = createRagdoll()
+    createGoldBar()
     createWalls()
     createSeesaw()
   
