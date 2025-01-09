@@ -74,113 +74,71 @@ window.addEventListener('DOMContentLoaded', () => {
         Composite.add(engine.world, ground);
   }
 
-  function createCyberTruck(){
-    // Set up the desired weight and dimensions for the rectangle
-    const weight = 10000; // in kilograms
-    const width = 200; // in pixels (width of the rectangle)
-    const height = 50; // in pixels (height of the rectangle)
+//   function createCyberTruck(){
+//     // Set up the desired weight and dimensions for the rectangle
+//     const weight = 10000; // in kilograms
+//     const width = 200; // in pixels (width of the rectangle)
+//     const height = 50; // in pixels (height of the rectangle)
 
-    // Assuming 1 pixel = 1 cm, so the volume is in cubic centimeters
-    const area = width * height; // area in square centimeters
+//     // Assuming 1 pixel = 1 cm, so the volume is in cubic centimeters
+//     const area = width * height; // area in square centimeters
 
-    // Set the density to ensure the mass is 10 kg
-    // Mass = Density * Area, so Density = Mass / Area
-    const density = weight / area; // density in kg/cm²
+//     // Set the density to ensure the mass is 10 kg
+//     // Mass = Density * Area, so Density = Mass / Area
+//     const density = weight / area; // density in kg/cm²
 
-    // Create the stack of Cybertrucks
-    const numCybertrucks = 5; // Number of Cybertrucks to stack
-    const initialX = 500; // Starting x position for the stack
-    let initialY = 850; // Starting y position for the first Cybertruck
+//     // Create the stack of Cybertrucks
+//     const numCybertrucks = 5; // Number of Cybertrucks to stack
+//     const initialX = 500; // Starting x position for the stack
+//     let initialY = 850; // Starting y position for the first Cybertruck
 
-    for (let i = 0; i < numCybertrucks; i++) {
-    // Create each Cybertruck and stack them vertically
-    const cyberTruck = Bodies.rectangle(initialX, initialY, width, height, {
-        density: density,
-        render: {
-            sprite: {
-              texture: '/assets/CyberTruck.png', // Path to the image
-              xScale: 0.2,  // Scale the image based on the width of the rectangle
-              yScale: 0.2   // Scale the image based on the height of the rectangle
-            }
-        }
-    });
+//     for (let i = 0; i < numCybertrucks; i++) {
+//     // Create each Cybertruck and stack them vertically
+//     const cyberTruck = Bodies.rectangle(initialX, initialY, width, height, {
+//         density: density,
+//         render: {
+//             sprite: {
+//               texture: '/assets/CyberTruck.png', // Path to the image
+//               xScale: 0.2,  // Scale the image based on the width of the rectangle
+//               yScale: 0.2   // Scale the image based on the height of the rectangle
+//             }
+//         }
+//     });
 
-    // Add the Cybertruck to the Matter.js world
-    Composite.add(engine.world, cyberTruck);
+//     // Add the Cybertruck to the Matter.js world
+//     Composite.add(engine.world, cyberTruck);
 
-    // Update the y-position for the next Cybertruck to stack it above the previous one
-    initialY -= height; // Move up by the height of one Cybertruck
-    }
-  }
+//     // Update the y-position for the next Cybertruck to stack it above the previous one
+//     initialY -= height; // Move up by the height of one Cybertruck
+//     }
+//   }
 
 
-  function createImageElement(src, id, zIndex = 1) {
-    const img = document.createElement('img');
-    img.src = src;
-    img.id = id;
-    img.classList.add('attachedImage');
+//    function createWreckingBall(){
+//     var ball = Bodies.circle(100, 400, 50, { density: 2000, frictionAir: 0.005, render: {
+//         sprite: {
+//           texture: '/assets/wrecking_ball.png', // Path to the image
+//           xScale: 0.6,  // Scale the image based on the width of the rectangle
+//           yScale: 0.6   // Scale the image based on the height of the rectangle
+//         }
+//     }});
     
-    // Apply z-index for stacking order
-    img.style.zIndex = zIndex;
-    
-    document.body.appendChild(img);
-    return img;
-  }
-  
-
-  function updateImageCar(car) {
-
-    // Body parts and images should already be mapped
-    const img = document.getElementById('cyberTruck');
- 
-    // Scale factor (0.3)
-    const scale = 0.35;
- 
-    if (img) {
-    const position = car.position;
-    const angle = car.angle;
-
-    // Set the width and height to 0.3 of the original size (scaled)
-    img.style.width = `${img.naturalWidth * scale}px`;
-    img.style.height = `${img.naturalHeight * scale}px`;
-
-    // Update position
-    img.style.left = `${position.x - img.width / 2}px`;
-    img.style.top = `${position.y - img.height / 2}px`;
-
-    // Update rotation (convert radians to degrees)
-    const rotationInDegrees = angle * (180 / Math.PI);
-    img.style.transform = `rotate(${rotationInDegrees}deg)`;
-    }
- 
-   }
-
-   function createWreckingBall(){
-    var ball = Bodies.circle(100, 400, 50, { density: 2000, frictionAir: 0.005, render: {
-        sprite: {
-          texture: '/assets/wrecking_ball.png', // Path to the image
-          xScale: 0.6,  // Scale the image based on the width of the rectangle
-          yScale: 0.6   // Scale the image based on the height of the rectangle
-        }
-    }});
-    
-    Composite.add(engine.world, ball);
-    Composite.add(engine.world, Constraint.create({
-        pointA: { x: 380, y: 450 },
-        bodyB: ball,
-        stiffness: 0.9,
-        length: 350,
-        render: {
-            strokeStyle: 'black', // Set the constraint line color to black
-            lineWidth: 1 // Optional: you can adjust the line width if needed
-        }
-    }));
-   }
+//     Composite.add(engine.world, ball);
+//     Composite.add(engine.world, Constraint.create({
+//         pointA: { x: 380, y: 450 },
+//         bodyB: ball,
+//         stiffness: 0.9,
+//         length: 350,
+//         render: {
+//             strokeStyle: 'black', // Set the constraint line color to black
+//             lineWidth: 1 // Optional: you can adjust the line width if needed
+//         }
+//     }));
+//    }
 
   init()
   createWalls()
-  createCyberTruck()
-  createWreckingBall()
+//   createWreckingBall()
 
 
   Events.on(engine, 'afterUpdate', () => {
