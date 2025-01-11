@@ -1,4 +1,5 @@
 
+const simulation_height = 10500;
 
 window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.querySelector('#matter-canvas')
@@ -43,12 +44,43 @@ window.addEventListener('DOMContentLoaded', () => {
   
       runner = Runner.create()
   
-      Render.run(render)
+      Render.run(render)    
       Runner.run(runner, engine)
   
       mouse.element.removeEventListener('mousewheel', mouse.mousewheel)
       mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel)
       Composite.add(engine.world, mouseConstraint)
+    }
+
+    function createDashedWall(x, isLeftWall) {
+        const wallThickness = 20;
+        const blockHeight = 100;  // Height of each "dash" block
+        const wallColor = '#777'; // Color for the wall
+        const dashColor = '#333'; // Color for the dashed blocks
+        const wallBlocks = [];
+        const numBlocks = Math.floor(simulation_height / blockHeight); // Total number of blocks to stack
+        
+        for (let i = 0; i < numBlocks; i++) {
+            // Alternate the color for a dashed effect (alternating between wallColor and dashColor)
+            const color = i % 2 === 0 ? dashColor : wallColor;
+    
+            // Create a rectangular block for the dash
+            const block = Bodies.rectangle(
+                x, 
+                i * blockHeight + blockHeight / 2, // Y position of each block, stacked vertically
+                wallThickness, 
+                blockHeight, 
+                { 
+                    isStatic: true, 
+                    render: { fillStyle: color }
+                }
+            );
+            
+            wallBlocks.push(block);
+        }
+    
+        // Add the blocks to the world
+        Composite.add(engine.world, wallBlocks);
     }
   
     function createWalls()
@@ -59,77 +91,36 @@ window.addEventListener('DOMContentLoaded', () => {
   
           // Create the four walls (edges) of the canvas
           const wallThickness = 10; // Thickness of walls
+
+          createDashedWall(0, true); // Left wall
+            createDashedWall(canvasWidth, false); // Right wall
   
           // Left wall
-          const leftWall = Bodies.rectangle(0, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
+          //const leftWall = Bodies.rectangle(0, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true,  render: { fillStyle: wallColor }});
           // Right wall
-          const rightWall = Bodies.rectangle(canvasWidth, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
+          ///const rightWall = Bodies.rectangle(canvasWidth, canvasHeight / 2 - 200, wallThickness, canvasHeight, { isStatic: true , render: { fillStyle: wallColor } });
           // Top wall
-          const topWall = Bodies.rectangle(canvasWidth / 2, 0, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+          const topWall = Bodies.rectangle(canvasWidth / 2, 500, canvasWidth, wallThickness, { label: 'topWall', isStatic: true, render: { fillStyle: wallColor } });
           // Bottom wall
-          const bottomWall = Bodies.rectangle(canvasWidth / 2, canvasHeight - 200, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
+          const bottomWall = Bodies.rectangle(canvasWidth / 2, simulation_height, canvasWidth, wallThickness, { isStatic: true, render: { fillStyle: wallColor } });
   
           // Add the walls to the ground composite
-          Composite.add(ground, [leftWall, rightWall, topWall, bottomWall]);
+          Composite.add(ground, [topWall, bottomWall]);
   
           Composite.add(engine.world, ground);
     }
-  
-    function createImageElement(src, id, zIndex = 1) {
-      const img = document.createElement('img');
-      img.src = src;
-      img.id = id;
-      img.classList.add('attachedImage');
-      
-      // Apply z-index for stacking order
-      img.style.zIndex = zIndex;
-      
-      document.body.appendChild(img);
-      return img;
-    }
-    
-  
-    function updateImagePositionAndRotation(person) {
-  
-     // Body parts and images should already be mapped
-     const images = {
-      head: document.getElementById('head'),
-      chest: document.getElementById('chest'),
-      rightUpperArm: document.getElementById('rightUpperArm'),
-      rightLowerArm: document.getElementById('rightLowerArm'),
-      leftUpperArm: document.getElementById('leftUpperArm'),
-      leftLowerArm: document.getElementById('leftLowerArm'),
-      leftUpperLeg: document.getElementById('leftUpperLeg'),
-      leftLowerLeg: document.getElementById('leftLowerLeg'),
-      rightUpperLeg: document.getElementById('rightUpperLeg'),
-      rightLowerLeg: document.getElementById('rightLowerLeg'),
-    };
-  
-    // Scale factor (0.3)
-    const scale = 0.35;
-  
-    // Update position and rotation for each body part
-    Composite.allBodies(person).forEach(body => {
-      const img = images[body.label]; // Get the corresponding image
-      if (img) {
-        const position = body.position;
-        const angle = body.angle;
-  
-      // Set the width and height to 0.3 of the original size (scaled)
-      img.style.width = `${img.naturalWidth * scale}px`;
-      img.style.height = `${img.naturalHeight * scale}px`;
-  
-  
-      // Update position
-      img.style.left = `${position.x - img.width / 2}px`;
-      img.style.top = `${position.y - img.height / 2}px`;
-  
-      // Update rotation (convert radians to degrees)
-      const rotationInDegrees = angle * (180 / Math.PI);
-      img.style.transform = `rotate(${rotationInDegrees}deg)`;
-      }
-    });
-  
+
+    function calculateDistanceToGround(ragdoll, groundY) {
+        var leftFootY = ragdoll.bodies.find(body => body.label === 'leftLowerLeg').position.y;
+        var rightFootY = ragdoll.bodies.find(body => body.label === 'rightLowerLeg').position.y;
+        
+        // Get the lowest y-coordinate of both feet
+        var lowestY = Math.max(leftFootY, rightFootY);
+        
+        // Calculate the distance from the bottom of the ragdoll to the ground
+        var distanceToGround = groundY - lowestY;
+        
+        return distanceToGround;
     }
   
     function ragdoll(x, y, scale, options) {
@@ -149,7 +140,13 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: [15 * scale, 15 * scale, 15 * scale, 15 * scale]
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/head.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var chestOptions = Common.extend({
@@ -160,7 +157,13 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: [20 * scale, 20 * scale, 26 * scale, 26 * scale]
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/body.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var leftArmOptions = Common.extend({
@@ -171,12 +174,24 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: 10 * scale
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/leftUpperArm.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var leftLowerArmOptions = Common.extend({}, leftArmOptions, {
           label: 'leftLowerArm',
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/leftLowerArm.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       });
       
       var rightArmOptions = Common.extend({
@@ -187,11 +202,24 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: 10 * scale
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/rightUpperArm.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var rightLowerArmOptions = Common.extend({}, rightArmOptions, {
           label: 'rightLowerArm',
+          render: {
+            sprite: {
+              texture: '/assets/rightLowerArm.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       });
       
       var leftLegOptions = Common.extend({
@@ -202,12 +230,24 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: 10 * scale
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/leftUpperLeg.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var leftLowerLegOptions = Common.extend({}, leftLegOptions, {
           label: 'leftLowerLeg',
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/leftLowerLeg.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       });
       
       var rightLegOptions = Common.extend({
@@ -218,12 +258,24 @@ window.addEventListener('DOMContentLoaded', () => {
           chamfer: {
               radius: 10 * scale
           },
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/rightUpperLeg.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       }, options);
       
       var rightLowerLegOptions = Common.extend({}, rightLegOptions, {
           label: 'rightLowerLeg',
-          render: { fillStyle: "#00000000" }
+          render: {
+            sprite: {
+              texture: '/assets/rightLowerLeg.png', // Path to the image
+              xScale: 0.35,  // Scale the image based on the width of the rectangle
+              yScale: 0.35   // Scale the image based on the height of the rectangle
+            }
+          }
       });
       
       var head = Bodies.rectangle(x, y - 60 * scale, 34 * scale, 40 * scale, headOptions);
@@ -236,18 +288,6 @@ window.addEventListener('DOMContentLoaded', () => {
       var leftLowerLeg = Bodies.rectangle(x - 10 * scale, y + 97 * scale, 20 * scale, 60 * scale, leftLowerLegOptions);
       var rightUpperLeg = Bodies.rectangle(x + 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, rightLegOptions);
       var rightLowerLeg = Bodies.rectangle(x + 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, rightLowerLegOptions);
-      
-      // Create image elements for each body part (use your own image paths)
-      const headImg = createImageElement('/assets/head.png', 'head',10);
-      const chestImg = createImageElement('/assets/body.png', 'chest',9);
-      const rightUpperArmImg = createImageElement('/assets/rightUpperArm.png', 'rightUpperArm',8);
-      const rightLowerArmImg = createImageElement('/assets/rightLowerArm.png', 'rightLowerArm',8);
-      const leftUpperArmImg = createImageElement('/assets/leftUpperArm.png', 'leftUpperArm',8);
-      const leftLowerArmImg = createImageElement('/assets/leftLowerArm.png', 'leftLowerArm',8);
-      const leftUpperLegImg = createImageElement('/assets/leftUpperLeg.png', 'leftUpperLeg',8);
-      const leftLowerLegImg = createImageElement('/assets/leftLowerLeg.png', 'leftLowerLeg',8);
-      const rightUpperLegImg = createImageElement('/assets/rightUpperLeg.png', 'rightUpperLeg',8);
-      const rightLowerLegImg = createImageElement('/assets/rightLowerLeg.png', 'rightLowerLeg',8);
   
       var chestToRightUpperArm = Constraint.create({
           bodyA: chest,
@@ -437,49 +477,6 @@ window.addEventListener('DOMContentLoaded', () => {
       return rag
     }
 
-    function updateImagePositionAndRotation_bill(person) {
-  
-        // Body parts and images should already be mapped
-        const images = {
-         head: document.getElementById('head_bill'),
-         chest: document.getElementById('chest_bill'),
-         rightUpperArm: document.getElementById('rightUpperArm_bill'),
-         rightLowerArm: document.getElementById('rightLowerArm_bill'),
-         leftUpperArm: document.getElementById('leftUpperArm_bill'),
-         leftLowerArm: document.getElementById('leftLowerArm_bill'),
-         leftUpperLeg: document.getElementById('leftUpperLeg_bill'),
-         leftLowerLeg: document.getElementById('leftLowerLeg_bill'),
-         rightUpperLeg: document.getElementById('rightUpperLeg_bill'),
-         rightLowerLeg: document.getElementById('rightLowerLeg_bill'),
-       };
-     
-       // Scale factor (0.3)
-       const scale = 0.4;
-     
-       // Update position and rotation for each body part
-       Composite.allBodies(person).forEach(body => {
-         const img = images[body.label]; // Get the corresponding image
-         if (img) {
-           const position = body.position;
-           const angle = body.angle;
-     
-         // Set the width and height to 0.3 of the original size (scaled)
-         img.style.width = `${img.naturalWidth * scale}px`;
-         img.style.height = `${img.naturalHeight * scale}px`;
-     
-     
-         // Update position
-         img.style.left = `${position.x - img.width / 2}px`;
-         img.style.top = `${position.y - img.height / 2}px`;
-     
-         // Update rotation (convert radians to degrees)
-         const rotationInDegrees = angle * (180 / Math.PI);
-         img.style.transform = `rotate(${rotationInDegrees}deg)`;
-         }
-       });
-     
-       }
-
     function ragdoll_bill(x, y, scale, options) {
         scale = typeof scale === 'undefined' ? 1 : scale;
         
@@ -497,7 +494,14 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: [15 * scale, 15 * scale, 15 * scale, 15 * scale]
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/head.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            },
+            depth: 2 // Custom Z-index (lower is behind)
         }, options);
         
         var chestOptions = Common.extend({
@@ -508,7 +512,14 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: [20 * scale, 20 * scale, 26 * scale, 26 * scale]
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/body.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            },
+            depth: 1 // Custom Z-index (lower is behind)
         }, options);
         
         var leftArmOptions = Common.extend({
@@ -519,12 +530,26 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: 10 * scale
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/leftUpperArm.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            },
+            depth: 0 // Custom Z-index (lower is behind)
         }, options);
         
         var leftLowerArmOptions = Common.extend({}, leftArmOptions, {
             label: 'leftLowerArm',
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/leftLowerArm.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            },
+            depth: 0 // Custom Z-index (lower is behind)
         });
         
         var rightArmOptions = Common.extend({
@@ -535,11 +560,24 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: 10 * scale
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/rightUpperArm.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         }, options);
         
         var rightLowerArmOptions = Common.extend({}, rightArmOptions, {
             label: 'rightLowerArm',
+            render: {
+                sprite: {
+                  texture: '/assets/bill/rightLowerArm.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         });
         
         var leftLegOptions = Common.extend({
@@ -550,12 +588,24 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: 10 * scale
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/leftUpperLeg.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         }, options);
         
         var leftLowerLegOptions = Common.extend({}, leftLegOptions, {
             label: 'leftLowerLeg',
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/leftLowerLeg.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         });
         
         var rightLegOptions = Common.extend({
@@ -566,12 +616,24 @@ window.addEventListener('DOMContentLoaded', () => {
             chamfer: {
                 radius: 10 * scale
             },
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/rightUpperLeg.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         }, options);
         
         var rightLowerLegOptions = Common.extend({}, rightLegOptions, {
             label: 'rightLowerLeg',
-            render: { fillStyle: "#00000000" }
+            render: {
+                sprite: {
+                  texture: '/assets/bill/rightLowerLeg.png', // Path to the image
+                  xScale: 0.4,  // Scale the image based on the width of the rectangle
+                  yScale: 0.4   // Scale the image based on the height of the rectangle
+                }
+            }
         });
         
         var head = Bodies.rectangle(x, y - 60 * scale, 34 * scale, 40 * scale, headOptions);
@@ -584,18 +646,6 @@ window.addEventListener('DOMContentLoaded', () => {
         var leftLowerLeg = Bodies.rectangle(x - 10 * scale, y + 97 * scale, 20 * scale, 60 * scale, leftLowerLegOptions);
         var rightUpperLeg = Bodies.rectangle(x + 20 * scale, y + 57 * scale, 20 * scale, 40 * scale, rightLegOptions);
         var rightLowerLeg = Bodies.rectangle(x + 20 * scale, y + 97 * scale, 20 * scale, 60 * scale, rightLowerLegOptions);
-        
-        // Create image elements for each body part (use your own image paths)
-        const headImg = createImageElement('/assets/bill/head.png', 'head_bill',10);
-        const chestImg = createImageElement('/assets/bill/body.png', 'chest_bill',9);
-        const rightUpperArmImg = createImageElement('/assets/bill/rightUpperArm.png', 'rightUpperArm_bill',8);
-        const rightLowerArmImg = createImageElement('/assets/bill/rightLowerArm.png', 'rightLowerArm_bill',7);
-        const leftUpperArmImg = createImageElement('/assets/bill/leftUpperArm.png', 'leftUpperArm_bill',8);
-        const leftLowerArmImg = createImageElement('/assets/bill/leftLowerArm.png', 'leftLowerArm_bill',7);
-        const leftUpperLegImg = createImageElement('/assets/bill/leftUpperLeg.png', 'leftUpperLeg_bill',8);
-        const leftLowerLegImg = createImageElement('/assets/bill/leftLowerLeg.png', 'leftLowerLeg_bill',8);
-        const rightUpperLegImg = createImageElement('/assets/bill/rightUpperLeg.png', 'rightUpperLeg_bill',8);
-        const rightLowerLegImg = createImageElement('/assets/bill/rightLowerLeg.png', 'rightLowerLeg_bill',8);
     
         var chestToRightUpperArm = Constraint.create({
             bodyA: chest,
@@ -816,32 +866,37 @@ window.addEventListener('DOMContentLoaded', () => {
     var bill = createRagdoll_bill()
     createWalls()
   
-    // get the centre of the viewport
-    var viewportCentre = {
-        x: render.options.width * 0.5,
-        y: render.options.height * 0.5
-    };
-
-    // create limits for the viewport
-    var extents = {
-        min: { x: -300, y: -300 },
-        max: { x: 1100, y: 900 }
-    };
-
-    // keep track of current bounds scale (view zoom)
-    var boundsScaleTarget = 1,
-        boundsScale = {
-            x: 1,
-            y: 1
-        };
-  
     Events.on(engine, 'afterUpdate', () => {
       //updateImageCar(car);
-      updateImagePositionAndRotation(person);
-      updateImagePositionAndRotation_bill(bill);
       followCombinedBody(person);
+      var distanceToGround = parseInt(calculateDistanceToGround(person, simulation_height)/100);
+
+      const distanceElement = document.getElementById('distance');
+      distanceElement.textContent = `Distance to Ground: ${distanceToGround} m`;  // Update the text with the distance value
     });
   
+
+    document.addEventListener('keydown', function(event) {
+        if (event.code === 'Space') {
+
+            // Remove the top wall from the world if it's enabled
+            const body = Composite.allBodies(engine.world).find(body => body.label === "topWall");
+            if (body) {
+                body.isSensor = true;  // Set isSensor to true
+                body.collisionFilter = {
+                    group: 1,  // Put the body in a separate collision group (group 1 or another number)
+                    category: 0x0001,  // This can be any category (we're using 0x0001 as an example)
+                    mask: 0x0000  // Set mask to 0 to prevent collisions with any body
+                };
+                body.render.fillStyle = '#00000000';  // Set the fill color to transparent
+                
+            } else {
+                console.log(` not found.`);
+            }
+    
+        }
+    });
+
     window.addEventListener('resize', () => {
       // canvasWidth = innerWidth
       // canvasHeight = innerHeight
